@@ -1,0 +1,113 @@
+# Rust build directory
+/target/
+
+# Rust generated files
+**/*.rs.bk
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Debug files
+*.pdb
+
+# Generated documentation
+/doc/
+/docs/
+
+# Test artifacts
+*.profraw
+/coverage/
+
+# Binary files
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Backup files
+*~
+*.bak
+
+# Log files
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Cargo lock file
+Cargo.lock
+
+# Python
+# Ignore any directory named venv anywhere in the project
+**/venv/
+**/venv/**
+**/.venv/
+**/.venv/**
+venv/
+.venv/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+*.mo
+*.pot
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+instance/
+.webassets-cache
+.python-version
+celerybeat-schedule
+*.sage.py
+.ipynb_checkpoints
+profile_default/
+ipython_config.py
+.pdm.toml
+__pypackages__/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Python virtual environments - catch all variations
+venv/
+*/venv/
+*/venv/**
+**/venv/
+**/venv/**
+.venv/
+*/.venv/
+*/.venv/**
+**/.venv/
+**/.venv/**
