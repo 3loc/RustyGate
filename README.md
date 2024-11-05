@@ -8,34 +8,48 @@
 - **Rate Limiting**: Configurable rate limiting using leaky bucket algorithm.
 
 ## Requirements
-- **Rust or Docker**: 
+- **Docker and Docker Compose** (recommended) or **Rust**
 - **OpenAI API Key**: You need an OpenAI API key to authenticate requests.
 
-## Docker Compose
+## Quick Start with Docker Compose
 
-The easiest way to run RustyGate is using Docker Compose:
+The easiest way to run RustyGate and verify it's working is using Docker Compose:
 
 1. **Set your OpenAI API key**:
     ```bash
     export OPENAI_API_KEY="your-api-key"
     ```
 
-2. **Start the services**:
+2. **Start RustyGate**:
     ```bash
-    docker compose up --build
+    docker compose up rustygate
     ```
 
-This will:
-- Build and start the RustyGate server
-- Run the test suite against the server
-- Configure the server using environment variables
+3. **Run the test suite** (optional):
+    ```bash
+    # In a new terminal
+    docker compose up tests
+    ```
+
+The test suite will verify:
+- Basic request forwarding
+- Streaming responses
+- JSON streaming
+- Rate limiting behavior
+- Different model support (gpt-4, o1-mini)
+
+### Configuration
 
 You can customize the configuration by setting environment variables before running docker compose:
 ```bash
-export PORT=9000
-export RATE_LIMIT=20
-export RATE_LIMIT_BURST=40
-docker compose up --build
+# Example configuration
+export PORT=9000                  # Default: 8080
+export RATE_LIMIT=20              # Default: 1
+export RATE_LIMIT_BURST=40        # Default: 3
+export SSE_KEEPALIVE_INTERVAL=30  # Default: 15
+export RUST_LOG=info             # Default: debug
+
+docker compose up rustygate
 ```
 
 ## From source
