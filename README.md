@@ -1,6 +1,6 @@
 # Rusty<img src="./gate.png" width="13%" alt="RustyGate Logo">Gate
 
-**RustyGate** is a lightweight, high performance, asynchronous OpenAI API proxy service with rate limiting, written in Rust.
+**RustyGate** is a lightweight, high performance, asynchronous OpenAI API proxy server with rate limiting, written in Rust.
 
 ## Features
 - **Request Forwarding**: Asynchronously forwards requests to OpenAI's API.
