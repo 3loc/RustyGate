@@ -7,7 +7,8 @@ services:
       platforms:
         - "linux/amd64"
         - "linux/arm64"
-    image: ghcr.io/3loc/rustygate
+    # Comment out image until it's publicly available
+    # image: ghcr.io/3loc/rustygate:latest
     ports:
       - "${PORT:-8080}:8080"
     environment:
@@ -34,7 +35,8 @@ services:
       platforms:
         - "linux/amd64"
         - "linux/arm64"
-    image: ghcr.io/3loc/rustygate-test
+    # Comment out image until it's published
+    # image: ghcr.io/3loc/rustygate-test:latest
     environment:
       - RUSTYGATE_ENDPOINT=http://rustygate:8080
       - OPENAI_API_KEY=${OPENAI_API_KEY}

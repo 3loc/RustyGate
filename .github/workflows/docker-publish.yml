@@ -61,3 +61,30 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: false # Disable SLSA provenance to avoid issues with some registries
+
+      - name: Extract Docker metadata for test image
+        id: meta-test
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-test
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=long
+
+      - name: Build and push test Docker image
+        id: build-and-push-test
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: tests/python/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta-test.outputs.tags }}
+          labels: ${{ steps.meta-test.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
