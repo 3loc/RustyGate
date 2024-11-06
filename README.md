@@ -4,6 +4,47 @@
 
 **RustyGate** is a lightweight, high performance, asynchronous OpenAI API proxy server with rate limiting, written in Rust.
 
+## Supported Platforms
+
+### Operating Systems
+- **Linux**
+  - AMD64 (x86_64) with musl libc
+  - ARM64 (aarch64) with musl libc
+  - Static binaries with no external dependencies
+  - Docker images available
+
+- **macOS**
+  - Intel (x86_64)
+  - Apple Silicon (M1/M2, arm64)
+  - Native builds for optimal performance
+
+- **FreeBSD**
+  - AMD64 (x86_64)
+  - Static binary with minimal dependencies
+
+### Containers
+- **Docker**
+  - Multi-arch images (amd64, arm64)
+  - Based on Alpine Linux
+  - Available on GitHub Container Registry
+
+### Package Formats
+- **Binary Releases**
+  - Self-contained executables
+  - SHA256 checksums provided
+  - No installation required
+
+### Build Types
+- **Production**
+  - Fully static binaries (Linux/FreeBSD)
+  - Vendored OpenSSL for consistent behavior
+  - Optimized for size and performance
+
+- **Development**
+  - Debug symbols included
+  - Dynamic linking available
+  - Source builds supported
+
 ## Features
 - **Request Forwarding**: Asynchronously forwards requests to OpenAI's API.
 - **Streaming**: Handles Server-Sent Events (SSE) streaming responses from OpenAI.
@@ -99,7 +140,37 @@ The following environment variables are supported:
 
 ### Making Requests
 
-The proxy forwards requests to OpenAI's API while maintaining the same API structure. Simply replace the OpenAI API base URL with your RustyGate server URL:
+You can use the official OpenAI client by just changing the base URL. Since RustyGate handles the API key, you don't need to provide it in the client:
+
+```python
+from openai import OpenAI
+
+# Initialize client with RustyGate URL
+# No API key needed as it's configured in RustyGate
+client = OpenAI(
+    base_url="http://localhost:8080/v1",  # RustyGate proxy URL
+    api_key="not-needed"  # Any string will work as the key is handled by RustyGate
+)
+
+# Non-streaming request
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+print(response.choices[0].message.content)
+
+# Streaming request
+stream = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}],
+    stream=True
+)
+for chunk in stream:
+    if chunk.choices[0].delta.content is not None:
+        print(chunk.choices[0].delta.content, end="")
+```
+
+Or use curl if you prefer:
 
 ```bash
 # Non-streaming request
