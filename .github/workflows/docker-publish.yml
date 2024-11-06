@@ -11,6 +11,7 @@ env:
   REGISTRY: docker.io
   RUSTYGATE_IMAGE: 3loc/rustygate
   TESTS_IMAGE: 3loc/rustygate-tests
+  PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   build:
@@ -63,6 +64,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: ${{ env.PLATFORMS }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-rustygate.outputs.tags }}
           labels: ${{ steps.meta-rustygate.outputs.labels }}
@@ -73,6 +75,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: ${{ env.PLATFORMS }}
           file: tests/python/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-tests.outputs.tags }}

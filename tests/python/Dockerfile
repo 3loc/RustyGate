@@ -1,14 +1,21 @@
-FROM python:3.11-alpine
+# Builder stage
+FROM --platform=$BUILDPLATFORM python:3.11-alpine AS builder
 
-WORKDIR /tests
+WORKDIR /build
 
-# Install build dependencies for pytest and aiohttp
+# Install build dependencies
 RUN apk add --no-cache gcc musl-dev python3-dev
 
 COPY tests/python/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt --target /install
 
+# Final stage
+FROM --platform=$TARGETPLATFORM python:3.11-alpine
+
+WORKDIR /tests
+
+# Copy only the installed packages and test files
+COPY --from=builder /install /usr/local/lib/python3.11/site-packages/
 COPY tests/python .
 
-# Use pytest-asyncio to run async tests
 CMD ["python", "-m", "pytest", "test_rustygate.py", "-v", "--asyncio-mode=auto"] 

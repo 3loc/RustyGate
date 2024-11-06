@@ -1,4 +1,4 @@
-FROM rust:1.76-alpine AS builder
+FROM --platform=$BUILDPLATFORM rust:1.76-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache \
@@ -19,7 +19,7 @@ RUN OPENSSL_STATIC=1 cargo build --release && \
 # The binary is named "main" because it's in src/bin/main.rs
 RUN mv target/release/main /usr/local/bin/rustygate
 
-FROM alpine:3.19
+FROM --platform=$TARGETPLATFORM alpine:3.19
 
 # Install runtime dependencies
 RUN apk add --no-cache ca-certificates curl

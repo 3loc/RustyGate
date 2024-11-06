@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      platforms:
+        - "linux/amd64"
+        - "linux/arm64"
     image: 3loc/rustygate
     ports:
       - "${PORT:-8080}:8080"
@@ -28,6 +31,9 @@ services:
     build:
       context: .
       dockerfile: tests/python/Dockerfile
+      platforms:
+        - "linux/amd64"
+        - "linux/arm64"
     image: 3loc/rustygate-test
     environment:
       - RUSTYGATE_URL=http://rustygate:8080

@@ -8,6 +8,7 @@
 - **Request Forwarding**: Asynchronously forwards requests to OpenAI's API.
 - **Streaming**: Handles Server-Sent Events (SSE) streaming responses from OpenAI.
 - **Rate Limiting**: Configurable rate limiting using leaky bucket algorithm.
+- **Multi-architecture Support**: Docker images available for AMD64 and ARM64 architectures.
 
 ## Requirements
 - **Docker and Docker Compose** (recommended) or **Rust**
