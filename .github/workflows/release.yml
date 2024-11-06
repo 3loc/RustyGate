@@ -49,8 +49,12 @@ jobs:
           wget https://www.openssl.org/source/openssl-3.0.8.tar.gz
           tar xf openssl-3.0.8.tar.gz
           cd openssl-3.0.8
-          # Modified Configure options
-          CC="musl-gcc -fPIC" ./Configure no-shared no-async --prefix=/usr/local/musl --openssldir=/usr/local/musl no-comp no-idea no-mdc2 no-rc5 no-ec2m no-sm2 no-sm4 no-secure-memory linux-x86_64
+          # Modified Configure options - disabled problematic engines
+          CC="musl-gcc -fPIC" ./Configure no-shared no-async --prefix=/usr/local/musl \
+            --openssldir=/usr/local/musl \
+            no-comp no-idea no-mdc2 no-rc5 no-ec2m no-sm2 no-sm4 \
+            no-secure-memory no-engine no-afalg \
+            linux-x86_64
           make -j$(nproc)
           sudo make install
           echo "OPENSSL_DIR=/usr/local/musl" >> $GITHUB_ENV
