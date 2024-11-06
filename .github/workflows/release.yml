@@ -32,7 +32,6 @@ jobs:
             artifact_name: rustygate-darwin-arm64
             sha_cmd: "shasum -a 256"
 
-    # Only use container for Linux builds
     container: ${{ matrix.container != '' && format('{0}', matrix.container) || null }}
 
     steps:
@@ -49,27 +48,30 @@ jobs:
             gcc \
             musl-dev \
             bash \
-            curl
+            curl \
+            perl \
+            make
 
       - name: Install cross-compilation tools (ARM64)
         if: matrix.target == 'aarch64-unknown-linux-musl'
         run: |
           apk add --no-cache \
             aarch64-linux-musl-gcc \
-            linux-headers
+            linux-headers \
+            openssl-dev \
+            openssl-libs-static
 
       - name: Setup cross-compilation environment (ARM64)
         if: matrix.target == 'aarch64-unknown-linux-musl'
         run: |
-          # Create pkg-config wrapper for cross-compilation
-          echo '#!/bin/sh' > /usr/local/bin/aarch64-linux-musl-pkg-config
-          echo 'PKG_CONFIG_LIBDIR=/usr/lib/pkgconfig:/usr/share/pkgconfig pkg-config "$@"' >> /usr/local/bin/aarch64-linux-musl-pkg-config
-          chmod +x /usr/local/bin/aarch64-linux-musl-pkg-config
-          # Set environment variables for cross-compilation
+          # Set cross-compilation environment variables
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc" >> $GITHUB_ENV
+          echo "CC_aarch64_unknown_linux_musl=aarch64-linux-musl-gcc" >> $GITHUB_ENV
+          echo "CXX_aarch64_unknown_linux_musl=aarch64-linux-musl-g++" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-C target-feature=+crt-static" >> $GITHUB_ENV
           echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
-          echo "PKG_CONFIG=aarch64-linux-musl-pkg-config" >> $GITHUB_ENV
-          echo "OPENSSL_DIR=/usr" >> $GITHUB_ENV
           echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
+          echo "OPENSSL_DIR=/usr" >> $GITHUB_ENV
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -77,8 +79,6 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build binary
-        env:
-          OPENSSL_STATIC: 1
         run: |
           cargo build --release --target ${{ matrix.target }}
           cp target/${{ matrix.target }}/release/main ${{ matrix.artifact_name }}
