@@ -19,8 +19,10 @@ RUN mv target/release/main /usr/local/bin/rustygate
 
 FROM --platform=$TARGETPLATFORM alpine:3.19
 
-# Install only ca-certificates for HTTPS requests
-RUN apk add --no-cache ca-certificates
+# Install ca-certificates and curl in the final image
+RUN apk add --no-cache \
+    ca-certificates \
+    curl
 
 COPY --from=builder /usr/local/bin/rustygate /usr/local/bin/
 
