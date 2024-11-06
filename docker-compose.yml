@@ -7,7 +7,7 @@ services:
       platforms:
         - "linux/amd64"
         - "linux/arm64"
-    image: 3loc/rustygate
+    image: ghcr.io/3loc/rustygate
     ports:
       - "${PORT:-8080}:8080"
     environment:
@@ -34,7 +34,7 @@ services:
       platforms:
         - "linux/amd64"
         - "linux/arm64"
-    image: 3loc/rustygate-test
+    image: ghcr.io/3loc/rustygate-test
     environment:
       - RUSTYGATE_URL=http://rustygate:8080
       - OPENAI_API_KEY=${OPENAI_API_KEY}
