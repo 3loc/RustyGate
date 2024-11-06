@@ -1,4 +1,4 @@
-# Rusty<img src="./gate.png" width="13%" alt="RustyGate Logo">Gate
+# <img src="./gate.png" width="13%" alt="RustyGate Logo">RustyGate
 
 [![Docker Build](https://github.com/3loc/rustygate/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/3loc/rustygate/actions/workflows/docker-publish.yml) [![License](https://img.shields.io/github/license/3loc/rustygate.svg)](https://github.com/3loc/rustygate/blob/main/LICENSE) ![Linux](https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-blue) ![macOS](https://img.shields.io/badge/macOS-amd64%20%7C%20arm64-blue) ![FreeBSD](https://img.shields.io/badge/FreeBSD-amd64-blue) [![Rust Version](https://img.shields.io/badge/rust-1.76%2B-orange.svg)](https://www.rust-lang.org) ![OpenSSL](https://img.shields.io/badge/OpenSSL-static-green) [![Release](https://img.shields.io/github/v/release/3loc/rustygate)](https://github.com/3loc/rustygate/releases/latest)
 
