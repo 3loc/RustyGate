@@ -36,7 +36,7 @@ services:
         - "linux/arm64"
     image: ghcr.io/3loc/rustygate-test
     environment:
-      - RUSTYGATE_URL=http://rustygate:8080
+      - RUSTYGATE_ENDPOINT=http://rustygate:8080
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       rustygate:

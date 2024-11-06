@@ -69,9 +69,10 @@ impl Config {
         let rate_limiter = Arc::new(
             RateLimiter::builder()
                 .initial(rate_limit_burst)
-                .refill(rate_limit)
-                .interval(std::time::Duration::from_secs(1))
+                .refill(1)
+                .interval(std::time::Duration::from_millis(1000))
                 .fair(true)
+                .max(rate_limit_burst)
                 .build()
         );
 

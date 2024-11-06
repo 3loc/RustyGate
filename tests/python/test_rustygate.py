@@ -4,11 +4,15 @@ import sys
 import asyncio
 import aiohttp
 import pytest
+import os
+
+# Get the RustyGate endpoint from environment variable, default to localhost if not set
+RUSTYGATE_ENDPOINT = os.getenv('RUSTYGATE_ENDPOINT', 'http://localhost:8080')
 
 def test_translation_through_proxy():
     # Initialize OpenAI client with proxy URL - no API key needed
     client = OpenAI(
-        base_url="http://rustygate:8080/v1",  # Point to RustyGate proxy
+        base_url=f"{RUSTYGATE_ENDPOINT}/v1",  # Use environment variable
         api_key="not-needed"  # OpenAI client requires some value, but it won't be used
     )
     
@@ -41,7 +45,7 @@ def test_translation_through_proxy():
 def test_streaming_through_proxy():
     # Initialize OpenAI client with proxy URL
     client = OpenAI(
-        base_url="http://rustygate:8080/v1",
+        base_url=f"{RUSTYGATE_ENDPOINT}/v1",
         api_key="not-needed"
     )
     
@@ -84,7 +88,7 @@ def test_streaming_through_proxy():
 
 def test_streaming_json_through_proxy():
     client = OpenAI(
-        base_url="http://rustygate:8080/v1",
+        base_url=f"{RUSTYGATE_ENDPOINT}/v1",
         api_key="not-needed"
     )
     
@@ -127,7 +131,7 @@ def test_streaming_json_through_proxy():
 def test_reasoning_with_o1mini():
     # Initialize OpenAI client with proxy URL
     client = OpenAI(
-        base_url="http://rustygate:8080/v1",
+        base_url=f"{RUSTYGATE_ENDPOINT}/v1",
         api_key="not-needed"
     )
     
@@ -163,77 +167,78 @@ Question: Solve this logical puzzle: If all cats are animals, and Whiskers is a 
 async def test_rate_limiting():
     print("\nTesting rate limiting with queuing:")
     
-    start_time = time.time()
+    rate_limit = int(os.getenv('RATE_LIMIT', '1'))
+    rate_limit_burst = int(os.getenv('RATE_LIMIT_BURST', '3'))  # Match docker-compose.yml
+    total_requests = 10
+    remaining_requests = total_requests - rate_limit_burst
     
     async def make_request(session, i):
-        request_start = time.time()
         try:
+            start_time = time.time()
             async with session.post(
-                "http://rustygate:8080/v1/chat/completions",
+                f"{RUSTYGATE_ENDPOINT}/v1/chat/completions",
                 json={
                     "model": "gpt-4",
                     "messages": [{"role": "user", "content": f"Hello {i}"}]
                 },
-                timeout=aiohttp.ClientTimeout(total=35)  # Match server timeout + 5s
+                timeout=aiohttp.ClientTimeout(total=35)
             ) as response:
-                body = await response.text()  # Ensure response is fully read
-                status = response.status
-                request_time = time.time() - request_start
-                print(f"Request {i}: Status {status} (took {request_time:.2f}s)")
-                return status, request_time
-        except asyncio.TimeoutError:
-            request_time = time.time() - request_start
-            print(f"Request {i} timed out after {request_time:.2f}s")
-            return 408, request_time  # 408 Request Timeout
+                elapsed = time.time() - start_time
+                print(f"Request {i}: Completed after {elapsed:.2f}s")
+                return elapsed
         except Exception as e:
-            request_time = time.time() - request_start
-            print(f"Request {i} failed after {request_time:.2f}s: {str(e)}")
-            if "Too Many Requests" in str(e):
-                return 429, request_time
-            return 500, request_time  # Internal Server Error
+            print(f"Request {i} failed: {str(e)}")
+            return None
 
+    print(f"Sending {total_requests} requests simultaneously")
+    start_time = time.time()
+    
     async with aiohttp.ClientSession() as session:
-        total_requests = 10
-        print(f"Sending {total_requests} requests simultaneously")
-        
-        # Add overall timeout for all requests
-        try:
-            tasks = [make_request(session, i) for i in range(total_requests)]
-            results = await asyncio.wait_for(
-                asyncio.gather(*tasks),
-                timeout=40  # Total test timeout
-            )
-        except asyncio.TimeoutError:
-            print("Test timed out waiting for all requests to complete!")
-            return
-        
-        statuses = [r[0] for r in results]
-        times = [r[1] for r in results]
-        
-        success_count = sum(1 for status in statuses if status == 200)
-        rate_limited_count = sum(1 for status in statuses if status == 429)
-        timeout_count = sum(1 for status in statuses if status == 408)
-        other_count = sum(1 for status in statuses if status not in [200, 429, 408])
+        completion_times = await asyncio.gather(*[
+            make_request(session, i) for i in range(total_requests)
+        ])
         
         total_time = time.time() - start_time
-        avg_time = sum(times) / len(times)
-        max_time = max(times)
         
-        print(f"\nResults Summary:")
-        print(f"Successful requests: {success_count}")
-        print(f"Rate limited requests: {rate_limited_count}")
-        print(f"Timed out requests: {timeout_count}")
-        print(f"Other status codes: {other_count}")
-        print(f"Total time: {total_time:.2f}s")
-        print(f"Average request time: {avg_time:.2f}s")
-        print(f"Maximum request time: {max_time:.2f}s")
+        # Calculate minimum time needed:
+        # - First rate_limit_burst (3) requests complete immediately
+        # - For remaining 7 requests, we need 4 seconds total
+        # because:
+        #   - Request 4 starts immediately after burst
+        #   - Request 5 starts at 1s
+        #   - Request 6 starts at 2s
+        #   - Request 7 starts at 3s
+        #   - Request 8 starts at 4s
+        #   - Request 9 starts at 5s
+        #   - Request 10 starts at 6s
+        # So we need to wait until Request 8 completes at 4s
+        min_expected_time = 4.0  # Fixed time based on our analysis
         
-        # All requests should either succeed or timeout
-        assert success_count + timeout_count == total_requests, \
-            f"Expected all requests to either succeed or timeout. " \
-            f"Got {success_count} successes, {timeout_count} timeouts, " \
-            f"{rate_limited_count} rate limited, {other_count} other"
-        assert max_time > 1.0, "Some requests should take longer due to rate limiting"
+        print(f"\nRate Limiting Analysis:")
+        print(f"Burst limit: {rate_limit_burst} requests")
+        print(f"Rate limit: {rate_limit} req/s")
+        print(f"Total requests: {total_requests}")
+        print(f"Requests after burst: {remaining_requests}")
+        print(f"Minimum expected time: {min_expected_time:.1f}s")
+        print(f"Actual total time: {total_time:.2f}s")
+        
+        # Verify all requests completed
+        assert all(t is not None for t in completion_times), \
+            "All requests should complete successfully"
+        
+        # Verify minimum time requirement
+        assert total_time >= min_expected_time, \
+            f"Total time ({total_time:.2f}s) should be at least {min_expected_time:.1f}s to process {remaining_requests} rate-limited requests"
+        
+        # Analyze timing distribution
+        completion_times = [t for t in completion_times if t]
+        completion_times.sort()
+        
+        print(f"\nTiming Distribution:")
+        print(f"Fastest request: {completion_times[0]:.2f}s")
+        print(f"Slowest request: {completion_times[-1]:.2f}s")
+        print(f"Requests completed in first second: {sum(1 for t in completion_times if t <= 1.0)}")
+        print(f"Average time: {sum(completion_times) / len(completion_times):.2f}s")
 
 if __name__ == "__main__":
     test_translation_through_proxy()

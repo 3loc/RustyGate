@@ -16,7 +16,11 @@ use tracing::info;
 /// Application entry point
 /// 
 /// Sets up the server with all routes and middleware, then starts listening
-/// for requests.
+/// for requests. Uses sane defaults for a machine with 2 CPU cores and 8GB RAM:
+/// - Rate limit: 20 req/s (allows good throughput while preventing overload)
+/// - Burst: 40 (2x rate limit for handling spikes)
+/// - SSE buffer: 512 bytes (sufficient for typical OpenAI streaming chunks)
+/// - SSE channel capacity: 1000 (balanced memory usage)
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize error handling
