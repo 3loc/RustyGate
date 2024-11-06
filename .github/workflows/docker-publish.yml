@@ -30,7 +30,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
-          username: 3loc
+          username: tedostrem 
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract Docker metadata for RustyGate
