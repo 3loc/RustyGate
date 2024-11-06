@@ -1,18 +1,16 @@
 ---
-name: Docker Build and Publish
+name: Docker
 
-"on":
+on:
   push:
-    branches: ["main"]
-    tags: ['v*.*.*']
+    branches: [ "main" ]
+    tags: [ 'v*.*.*' ]
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
 
 env:
-  REGISTRY: docker.io
-  RUSTYGATE_IMAGE: 3loc/rustygate
-  TESTS_IMAGE: 3loc/rustygate-tests
-  PLATFORMS: linux/amd64,linux/arm64
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build:
@@ -20,66 +18,46 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
+      security-events: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log into Docker Hub
+      - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
-          username: tedostrem
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata for RustyGate
-        id: meta-rustygate
+      - name: Extract Docker metadata
+        id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.RUSTYGATE_IMAGE }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=long
 
-      - name: Extract Docker metadata for Tests
-        id: meta-tests
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.TESTS_IMAGE }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push RustyGate image
+      - name: Build and push Docker image
+        id: build-and-push
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: ${{ env.PLATFORMS }}
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-rustygate.outputs.tags }}
-          labels: ${{ steps.meta-rustygate.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-      - name: Build and push Tests image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          platforms: ${{ env.PLATFORMS }}
-          file: tests/python/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta-tests.outputs.tags }}
-          labels: ${{ steps.meta-tests.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          provenance: false # Disable SLSA provenance to avoid issues with some registries
