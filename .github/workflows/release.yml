@@ -17,12 +17,10 @@ jobs:
             target: x86_64-unknown-linux-musl
             artifact_name: rustygate-linux-amd64
             sha_cmd: sha256sum
-            container: alpine:3.19
           - os: ubuntu-latest
             target: aarch64-unknown-linux-musl
             artifact_name: rustygate-linux-arm64
             sha_cmd: sha256sum
-            container: alpine:3.19
           - os: macos-latest
             target: x86_64-apple-darwin
             artifact_name: rustygate-darwin-amd64
@@ -32,52 +30,35 @@ jobs:
             artifact_name: rustygate-darwin-arm64
             sha_cmd: "shasum -a 256"
 
-    container: ${{ matrix.container != '' && format('{0}', matrix.container) || null }}
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install basic dependencies (Alpine)
-        if: matrix.container != ''
-        run: |
-          apk add --no-cache \
-            build-base \
-            openssl-dev \
-            openssl-libs-static \
-            pkgconfig \
-            gcc \
-            musl-dev \
-            bash \
-            curl \
-            perl \
-            make
+      - name: Build with Cross
+        if: runner.os == 'Linux'
+        uses: houseabsolute/actions-rust-cross@v0.0.15
+        with:
+          target: ${{ matrix.target }}
+          args: "--release"
+          strip: true
 
-      - name: Install ARM64 cross-compilation tools
-        if: matrix.target == 'aarch64-unknown-linux-musl'
-        run: |
-          apk add --no-cache \
-            cross-gcc-aarch64-musl \
-            cross-musl-aarch64 \
-            cross-binutils-aarch64
-
-      - name: Setup cross-compilation environment (ARM64)
-        if: matrix.target == 'aarch64-unknown-linux-musl'
-        run: |
-          echo "CC_aarch64_unknown_linux_musl=aarch64-linux-musl-gcc" >> $GITHUB_ENV
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-musl-gcc" >> $GITHUB_ENV
-          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
-          echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=/usr/lib/pkgconfig" >> $GITHUB_ENV
-
-      - name: Install Rust
+      - name: Install Rust (macOS)
+        if: runner.os == 'macOS'
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
-      - name: Build binary
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
         run: |
           cargo build --release --target ${{ matrix.target }}
-          cp target/${{ matrix.target }}/release/main ${{ matrix.artifact_name }}
+
+      - name: Prepare artifact
+        run: |
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            cp target/${{ matrix.target }}/release/main ${{ matrix.artifact_name }}
+          else
+            cp target/${{ matrix.target }}/release/main ${{ matrix.artifact_name }}
+          fi
 
       - name: Generate SHA256
         run: |
@@ -95,17 +76,10 @@ jobs:
   create-release:
     needs: build-release
     runs-on: ubuntu-latest
-    container:
-      image: alpine:3.19
-      options: --user root
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          apk add --no-cache git curl
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
