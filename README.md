@@ -13,7 +13,7 @@ High-performance OpenAI API proxy with rate limiting and streaming support.
 
 ## Quick Start
 
-### Using Docker (recommended)
+### Using Docker
 ```bash
 # Set your OpenAI API key
 export OPENAI_API_KEY="your-api-key"
