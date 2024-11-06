@@ -22,7 +22,7 @@ jobs:
             target: aarch64-unknown-linux-musl
             artifact_name: rustygate-linux-arm64
             sha_cmd: sha256sum
-            container: alpine:3.19
+            use_cross: true
           - os: macos-latest
             target: x86_64-apple-darwin
             artifact_name: rustygate-darwin-amd64
@@ -52,35 +52,25 @@ jobs:
             perl \
             make
 
-      - name: Install cross-compilation tools (ARM64)
-        if: matrix.target == 'aarch64-unknown-linux-musl'
-        run: |
-          apk add --no-cache \
-            gcc-aarch64-none-elf \
-            linux-headers \
-            openssl-dev \
-            openssl-libs-static
-
-      - name: Setup cross-compilation environment (ARM64)
-        if: matrix.target == 'aarch64-unknown-linux-musl'
-        run: |
-          # Set cross-compilation environment variables
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-none-elf-gcc" >> $GITHUB_ENV
-          echo "CC_aarch64_unknown_linux_musl=aarch64-none-elf-gcc" >> $GITHUB_ENV
-          echo "CXX_aarch64_unknown_linux_musl=aarch64-none-elf-g++" >> $GITHUB_ENV
-          echo "RUSTFLAGS=-C target-feature=+crt-static" >> $GITHUB_ENV
-          echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
-          echo "OPENSSL_STATIC=1" >> $GITHUB_ENV
-          echo "OPENSSL_DIR=/usr" >> $GITHUB_ENV
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
 
+      - name: Install cross
+        if: matrix.use_cross
+        run: |
+          curl -L https://github.com/cross-rs/cross/releases/download/v0.2.5/cross-x86_64-unknown-linux-musl.tar.gz | tar xz
+          mv cross /usr/local/bin/
+          chmod +x /usr/local/bin/cross
+
       - name: Build binary
         run: |
-          cargo build --release --target ${{ matrix.target }}
+          if [ "${{ matrix.use_cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
           cp target/${{ matrix.target }}/release/main ${{ matrix.artifact_name }}
 
       - name: Generate SHA256
