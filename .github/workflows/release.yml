@@ -47,6 +47,9 @@ jobs:
           sudo apt-get install -y libssl-dev
           # For aarch64 cross-compilation
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-musl" ]]; then
+            # Add ARM64 architecture support
+            sudo dpkg --add-architecture arm64
+            sudo apt-get update
             sudo apt-get install -y gcc-aarch64-linux-gnu
             sudo apt-get install -y libssl-dev:arm64
           fi
