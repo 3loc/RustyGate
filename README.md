@@ -141,3 +141,51 @@ make dev
 ## License
 
 This project is licensed under the MIT License.
+
+## Installation
+
+### Using Docker (recommended)
+```bash
+docker pull 3loc/rustygate
+```
+
+### Using Pre-built Binaries
+
+Download the latest binary for your platform from the [releases page](https://github.com/3loc/rustygate/releases).
+
+```bash
+# Linux AMD64
+curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-linux-amd64
+chmod +x rustygate-linux-amd64
+sudo mv rustygate-linux-amd64 /usr/local/bin/rustygate
+
+# Linux ARM64 (e.g., Raspberry Pi)
+curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-linux-arm64
+chmod +x rustygate-linux-arm64
+sudo mv rustygate-linux-arm64 /usr/local/bin/rustygate
+
+# macOS AMD64 (Intel)
+curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-darwin-amd64
+chmod +x rustygate-darwin-amd64
+sudo mv rustygate-darwin-amd64 /usr/local/bin/rustygate
+
+# macOS ARM64 (Apple Silicon)
+curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-darwin-arm64
+chmod +x rustygate-darwin-arm64
+sudo mv rustygate-darwin-arm64 /usr/local/bin/rustygate
+```
+
+To verify the binary (recommended):
+```bash
+# Download the checksum file
+curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-<platform>.sha256
+
+# Verify the checksum (replace <platform> with your platform)
+sha256sum -c rustygate-<platform>.sha256
+```
+
+Available platforms:
+- `linux-amd64`: Linux on Intel/AMD 64-bit
+- `linux-arm64`: Linux on ARM64 (e.g., Raspberry Pi)
+- `darwin-amd64`: macOS on Intel
+- `darwin-arm64`: macOS on Apple Silicon
