@@ -32,11 +32,8 @@ jobs:
             artifact_name: rustygate-darwin-arm64
             sha_cmd: "shasum -a 256"
 
-    container:
-      image: ${{ matrix.container }}
-      options: --user root
-      # Only use container for Linux builds
-      if: matrix.container != ''
+    # Only use container for Linux builds
+    container: ${{ matrix.container != '' && format('{0}', matrix.container) || null }}
 
     steps:
       - uses: actions/checkout@v4
