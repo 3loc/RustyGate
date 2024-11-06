@@ -16,34 +16,39 @@ jobs:
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-musl
             artifact_name: rustygate-linux-amd64
+            cross_build: true
 
           - os-name: Linux-aarch64
             runs-on: ubuntu-latest
             target: aarch64-unknown-linux-musl
             artifact_name: rustygate-linux-arm64
+            cross_build: true
 
           - os-name: macOS-x86_64
             runs-on: macos-latest
             target: x86_64-apple-darwin
             artifact_name: rustygate-darwin-amd64
+            cross_build: false
 
           - os-name: macOS-aarch64
             runs-on: macos-latest
             target: aarch64-apple-darwin
             artifact_name: rustygate-darwin-arm64
+            cross_build: false
 
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install build dependencies (Linux)
-        if: runner.os == 'Linux'
+      # Linux-specific steps
+      - name: Install build dependencies
+        if: matrix.platform.cross_build
         run: |
           sudo apt-get update
           sudo apt-get install -y musl-tools perl make
 
-      - name: Build with Cross (Linux)
-        if: runner.os == 'Linux'
+      - name: Build with Cross
+        if: matrix.platform.cross_build
         uses: houseabsolute/actions-rust-cross@v0.0.15
         with:
           target: ${{ matrix.platform.target }}
@@ -53,27 +58,29 @@ jobs:
             OPENSSL_STATIC=1
             RUSTFLAGS="-C target-feature=+crt-static"
 
-      - name: Install Rust (macOS)
-        if: runner.os == 'macOS'
+      # macOS-specific steps
+      - name: Install Rust
+        if: "!matrix.platform.cross_build"
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform.target }}
 
-      - name: Build (macOS)
-        if: runner.os == 'macOS'
+      - name: Build
+        if: "!matrix.platform.cross_build"
         run: cargo build --release --target ${{ matrix.platform.target }}
 
+      # Common steps
       - name: Prepare artifact
         run: |
           cp target/${{ matrix.platform.target }}/release/main ${{ matrix.platform.artifact_name }}
 
       - name: Generate SHA256
         run: |
-          if [ "${{ runner.os }}" = "Linux" ]; then
-            sha256sum ${{ matrix.platform.artifact_name }} > ${{ matrix.platform.artifact_name }}.sha256
+          if [ "${{ matrix.platform.cross_build }}" = "true" ]; then
+            sha256sum ${{ matrix.platform.artifact_name }}
           else
-            shasum -a 256 ${{ matrix.platform.artifact_name }} > ${{ matrix.platform.artifact_name }}.sha256
-          fi
+            shasum -a 256 ${{ matrix.platform.artifact_name }}
+          fi > ${{ matrix.platform.artifact_name }}.sha256
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
