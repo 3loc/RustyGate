@@ -1,6 +1,7 @@
+---
 name: Release Binaries
 
-on:
+"on":
   push:
     tags:
       - 'v*.*.*'
@@ -49,11 +50,15 @@ jobs:
           if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-musl" ]]; then
             # Add ARM64 architecture and repositories
             sudo dpkg --add-architecture arm64
-            sudo sed -i 's/deb http/deb [arch=amd64] http/g' /etc/apt/sources.list
+            sudo sed -i 's/deb http/deb [arch=amd64] http/g' \
+              /etc/apt/sources.list
             cat << 'EOF' | sudo tee /etc/apt/sources.list.d/arm64.list
-            deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted
-            deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted
-            deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-security main restricted
+            deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \
+              jammy main restricted
+            deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \
+              jammy-updates main restricted
+            deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports \
+              jammy-security main restricted
             EOF
             sudo apt-get update
             sudo apt-get install -y gcc-aarch64-linux-gnu
@@ -61,21 +66,25 @@ jobs:
           fi
           # Install OpenSSL dev for MUSL
           sudo apt-get install -y musl-dev libssl-dev
-          sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/
-          sudo ln -s /usr/include/openssl /usr/include/x86_64-linux-musl/openssl
+          sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h \
+            /usr/include/openssl/
+          sudo ln -s /usr/include/openssl \
+            /usr/include/x86_64-linux-musl/openssl
 
       - name: Build binary
         env:
           OPENSSL_STATIC: 1
           PKG_CONFIG_ALLOW_CROSS: 1
-          PKG_CONFIG_PATH: "/usr/lib/x86_64-linux-gnu/pkgconfig"
+          PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
         run: |
           cargo build --release --target ${{ matrix.target }}
-          cp target/${{ matrix.target }}/release/main ${{ matrix.artifact_name }}
+          cp target/${{ matrix.target }}/release/main \
+            ${{ matrix.artifact_name }}
 
       - name: Generate SHA256
         run: |
-          ${{ matrix.sha_cmd }} ${{ matrix.artifact_name }} > ${{ matrix.artifact_name }}.sha256
+          ${{ matrix.sha_cmd }} ${{ matrix.artifact_name }} > \
+            ${{ matrix.artifact_name }}.sha256
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
