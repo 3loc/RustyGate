@@ -7,74 +7,78 @@ name: Release Binaries
       - 'v*.*.*'
 
 jobs:
-  build-release:
-    name: Build ${{ matrix.artifact_name }}
-    runs-on: ${{ matrix.os }}
+  release:
+    name: Release - ${{ matrix.platform.os-name }}
     strategy:
       matrix:
-        include:
-          - os: ubuntu-latest
+        platform:
+          - os-name: Linux-x86_64
+            runs-on: ubuntu-latest
             target: x86_64-unknown-linux-musl
             artifact_name: rustygate-linux-amd64
-            sha_cmd: sha256sum
-          - os: ubuntu-latest
+
+          - os-name: Linux-aarch64
+            runs-on: ubuntu-latest
             target: aarch64-unknown-linux-musl
             artifact_name: rustygate-linux-arm64
-            sha_cmd: sha256sum
-          - os: macos-latest
+
+          - os-name: macOS-x86_64
+            runs-on: macos-latest
             target: x86_64-apple-darwin
             artifact_name: rustygate-darwin-amd64
-            sha_cmd: "shasum -a 256"
-          - os: macos-latest
+
+          - os-name: macOS-aarch64
+            runs-on: macos-latest
             target: aarch64-apple-darwin
             artifact_name: rustygate-darwin-arm64
-            sha_cmd: "shasum -a 256"
 
+    runs-on: ${{ matrix.platform.runs-on }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build with Cross
+      - name: Build with Cross (Linux)
         if: runner.os == 'Linux'
         uses: houseabsolute/actions-rust-cross@v0.0.15
         with:
-          target: ${{ matrix.target }}
+          target: ${{ matrix.platform.target }}
           args: "--release"
           strip: true
+          env: |
+            OPENSSL_STATIC=1
+            PKG_CONFIG_ALLOW_CROSS=1
 
       - name: Install Rust (macOS)
         if: runner.os == 'macOS'
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: ${{ matrix.platform.target }}
 
       - name: Build (macOS)
         if: runner.os == 'macOS'
-        run: |
-          cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.platform.target }}
 
       - name: Prepare artifact
         run: |
-          if [ "${{ runner.os }}" = "Linux" ]; then
-            cp target/${{ matrix.target }}/release/main ${{ matrix.artifact_name }}
-          else
-            cp target/${{ matrix.target }}/release/main ${{ matrix.artifact_name }}
-          fi
+          cp target/${{ matrix.platform.target }}/release/main ${{ matrix.platform.artifact_name }}
 
       - name: Generate SHA256
         run: |
-          ${{ matrix.sha_cmd }} ${{ matrix.artifact_name }} > \
-            ${{ matrix.artifact_name }}.sha256
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            sha256sum ${{ matrix.platform.artifact_name }} > ${{ matrix.platform.artifact_name }}.sha256
+          else
+            shasum -a 256 ${{ matrix.platform.artifact_name }} > ${{ matrix.platform.artifact_name }}.sha256
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
+          name: ${{ matrix.platform.artifact_name }}
           path: |
-            ${{ matrix.artifact_name }}
-            ${{ matrix.artifact_name }}.sha256
+            ${{ matrix.platform.artifact_name }}
+            ${{ matrix.platform.artifact_name }}.sha256
 
   create-release:
-    needs: build-release
+    needs: release
     runs-on: ubuntu-latest
     permissions:
       contents: write
