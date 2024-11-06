@@ -1,155 +1,45 @@
 # Rusty<img src="./gate.png" width="13%" alt="RustyGate Logo">Gate
 
-[![Docker Build](https://github.com/3loc/rustygate/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/3loc/rustygate/actions/workflows/docker-publish.yml) [![License](https://img.shields.io/github/license/3loc/rustygate.svg)](https://github.com/3loc/rustygate/blob/main/LICENSE) ![Linux](https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-blue) ![macOS](https://img.shields.io/badge/macOS-amd64%20%7C%20arm64-blue) ![FreeBSD](https://img.shields.io/badge/FreeBSD-amd64-blue) [![Rust Version](https://img.shields.io/badge/rust-1.76%2B-orange.svg)](https://www.rust-lang.org) ![OpenSSL](https://img.shields.io/badge/OpenSSL-static-green) [![Release](https://img.shields.io/github/v/release/3loc/rustygate)](https://github.com/3loc/rustygate/releases/latest) [![GitHub issues](https://img.shields.io/github/issues/3loc/rustygate)](https://github.com/3loc/rustygate/issues) [![Crates.io](https://img.shields.io/badge/async-runtime-yellow)](https://crates.io/crates/tokio)
+[![Docker Build](https://github.com/3loc/rustygate/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/3loc/rustygate/actions/workflows/docker-publish.yml) [![License](https://img.shields.io/github/license/3loc/rustygate.svg)](https://github.com/3loc/rustygate/blob/main/LICENSE) ![Linux](https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-blue) ![macOS](https://img.shields.io/badge/macOS-amd64%20%7C%20arm64-blue) ![FreeBSD](https://img.shields.io/badge/FreeBSD-amd64-blue) [![Rust Version](https://img.shields.io/badge/rust-1.76%2B-orange.svg)](https://www.rust-lang.org) ![OpenSSL](https://img.shields.io/badge/OpenSSL-static-green) [![Release](https://img.shields.io/github/v/release/3loc/rustygate)](https://github.com/3loc/rustygate/releases/latest)
 
-**RustyGate** is a lightweight, high performance, asynchronous OpenAI API proxy server with rate limiting, written in Rust.
-
-## Supported Platforms
-
-### Operating Systems
-- **Linux**
-  - AMD64 (x86_64) with musl libc
-  - ARM64 (aarch64) with musl libc
-  - Static binaries with no external dependencies
-  - Docker images available
-
-- **macOS**
-  - Intel (x86_64)
-  - Apple Silicon (M1/M2, arm64)
-  - Native builds for optimal performance
-
-- **FreeBSD**
-  - AMD64 (x86_64)
-  - Static binary with minimal dependencies
-
-### Containers
-- **Docker**
-  - Multi-arch images (amd64, arm64)
-  - Based on Alpine Linux
-  - Available on GitHub Container Registry
-
-### Package Formats
-- **Binary Releases**
-  - Self-contained executables
-  - SHA256 checksums provided
-  - No installation required
-
-### Build Types
-- **Production**
-  - Fully static binaries (Linux/FreeBSD)
-  - Vendored OpenSSL for consistent behavior
-  - Optimized for size and performance
-
-- **Development**
-  - Debug symbols included
-  - Dynamic linking available
-  - Source builds supported
+High-performance OpenAI API proxy with rate limiting and streaming support.
 
 ## Features
-- **Request Forwarding**: Asynchronously forwards requests to OpenAI's API.
-- **Streaming**: Handles Server-Sent Events (SSE) streaming responses from OpenAI.
-- **Rate Limiting**: Configurable rate limiting using leaky bucket algorithm.
-- **Multi-architecture Support**: Docker images available for AMD64 and ARM64 architectures.
+- Asynchronous request forwarding
+- SSE streaming support
+- Configurable rate limiting
+- Multi-platform support (Linux, macOS, FreeBSD)
+- Docker images for easy deployment
 
-## Requirements
-- **Docker and Docker Compose** (recommended) or **Rust**
-- **OpenAI API Key**: You need an OpenAI API key to authenticate requests.
+## Quick Start
 
-## Quick Start with Docker Compose
-
-The easiest way to run RustyGate and verify it's working is using Docker Compose:
-
-1. **Set your OpenAI API key**:
-    ```bash
-    export OPENAI_API_KEY="your-api-key"
-    ```
-
-2. **Start RustyGate**:
-    ```bash
-    docker compose up rustygate
-    ```
-
-3. **Run the test suite** (optional):
-    ```bash
-    # In a new terminal
-    docker compose up tests
-    ```
-
-The test suite will verify:
-- Basic request forwarding
-- Streaming responses
-- JSON streaming
-- Rate limiting behavior
-- Different model support (gpt-4, o1-mini)
-
-### Configuration
-
-You can customize the configuration by setting environment variables before running docker compose:
+### Using Docker (recommended)
 ```bash
-# Example configuration
-export PORT=9000                  # Default: 8080
-export RATE_LIMIT=20              # Default: 1
-export RATE_LIMIT_BURST=40        # Default: 3
-export SSE_KEEPALIVE_INTERVAL=30  # Default: 15
-export RUST_LOG=info             # Default: debug
+# Set your OpenAI API key
+export OPENAI_API_KEY="your-api-key"
 
-docker compose up rustygate
+# Run RustyGate
+docker run -p 8080:8080 -e OPENAI_API_KEY=$OPENAI_API_KEY ghcr.io/3loc/rustygate
 ```
 
-## From source
-
-1. **Clone the Repository**:
-    ```bash
-    git clone https://github.com/3loc/rustygate.git
-    cd rustygate
-    ```
-
-2. **Build the Project**:
-    ```bash
-    cargo build --release
-    ```
-
-## Configuration
-
-The following environment variables are supported:
-
-- `OPENAI_API_KEY` (required): Your OpenAI API key
-- `PORT`: Server port (default: 8080)
-- `BIND_ADDRESS`: Server bind address (default: 127.0.0.1)
-- `RUST_LOG`: Log level (default: debug)
-- `SSE_CHANNEL_CAPACITY`: Capacity for streaming message channel (default: 100)
-- `SSE_KEEPALIVE_INTERVAL`: Keepalive interval in seconds for SSE (default: 15)
-- `SSE_BUFFER_CAPACITY`: Initial capacity for SSE response buffer (default: 1024)
-- `RATE_LIMIT`: Maximum requests per second (default: 10)
-- `RATE_LIMIT_BURST`: Maximum burst capacity for rate limiting (default: 20)
+### Using Pre-built Binaries
+Download from [releases page](https://github.com/3loc/rustygate/releases) and install:
+```bash
+# Example for Linux AMD64
+curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-linux-amd64
+chmod +x rustygate-linux-amd64
+sudo mv rustygate-linux-amd64 /usr/local/bin/rustygate
+```
 
 ## Usage
-
-### Running the Server
-
-1. **Set Environment Variables**:
-    ```bash
-    export OPENAI_API_KEY="your-api-key"
-    export RUST_LOG=debug
-    ```
-
-2. **Start the Server**:
-    ```bash
-    cargo run
-    ```
-
-### Making Requests
-
-You can use the official OpenAI client by just changing the base URL. Since RustyGate handles the API key, you don't need to provide it in the client:
 
 ```python
 from openai import OpenAI
 
 # Initialize client with RustyGate URL
-# No API key needed as it's configured in RustyGate
 client = OpenAI(
     base_url="http://localhost:8080/v1",  # RustyGate proxy URL
-    api_key="not-needed"  # Any string will work as the key is handled by RustyGate
+    api_key="not-needed"  # API key is handled by RustyGate
 )
 
 # Non-streaming request
@@ -170,103 +60,27 @@ for chunk in stream:
         print(chunk.choices[0].delta.content, end="")
 ```
 
-Or use curl if you prefer:
+## Configuration
 
-```bash
-# Non-streaming request
-curl -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-4",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-
-# Streaming request
-curl -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-4",
-    "messages": [{"role": "user", "content": "Hello!"}],
-    "stream": true
-  }'
-```
-
-## Libraries Used
-
-- **axum**: Modern web framework for building HTTP servers
-- **tokio**: Asynchronous runtime
-- **tower-http**: HTTP-specific middleware
-- **reqwest**: HTTP client for making requests
-- **tracing**: Application-level logging
-- **color-eyre**: Error handling and reporting
-- **leaky-bucket**: Rate limiting implementation with fair queuing
+Environment variables:
+- `OPENAI_API_KEY` (required): Your OpenAI API key
+- `PORT`: Server port (default: 8080)
+- `RATE_LIMIT`: Requests per second (default: 10)
+- `RATE_LIMIT_BURST`: Burst capacity (default: 20)
+- `RUST_LOG`: Log level (default: debug)
 
 ## Development
 
-To run in development mode with debug logging:
-
 ```bash
-make dev
+# Clone and build
+git clone https://github.com/3loc/rustygate.git
+cd rustygate
+cargo build --release
+
+# Run tests
+docker compose up tests
 ```
 
 ## License
 
-This project is licensed under the MIT License.
-
-## Installation
-
-### Using Docker (recommended)
-```bash
-# Pull from GitHub Container Registry
-docker pull ghcr.io/3loc/rustygate:latest
-
-# Or specify a version
-docker pull ghcr.io/3loc/rustygate:0.1.0
-```
-
-### Using Pre-built Binaries
-
-Download the latest binary for your platform from the [releases page](https://github.com/3loc/rustygate/releases).
-
-```bash
-# Linux AMD64
-curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-linux-amd64
-chmod +x rustygate-linux-amd64
-sudo mv rustygate-linux-amd64 /usr/local/bin/rustygate
-
-# Linux ARM64 (e.g., Raspberry Pi)
-curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-linux-arm64
-chmod +x rustygate-linux-arm64
-sudo mv rustygate-linux-arm64 /usr/local/bin/rustygate
-
-# FreeBSD AMD64
-curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-freebsd-amd64
-chmod +x rustygate-freebsd-amd64
-sudo mv rustygate-freebsd-amd64 /usr/local/bin/rustygate
-
-# macOS AMD64 (Intel)
-curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-darwin-amd64
-chmod +x rustygate-darwin-amd64
-sudo mv rustygate-darwin-amd64 /usr/local/bin/rustygate
-
-# macOS ARM64 (Apple Silicon)
-curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-darwin-arm64
-chmod +x rustygate-darwin-arm64
-sudo mv rustygate-darwin-arm64 /usr/local/bin/rustygate
-```
-
-To verify the binary (recommended):
-```bash
-# Download the checksum file
-curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-<platform>.sha256
-
-# Verify the checksum (replace <platform> with your platform)
-sha256sum -c rustygate-<platform>.sha256
-```
-
-Available platforms:
-- `linux-amd64`: Linux on Intel/AMD 64-bit
-- `linux-arm64`: Linux on ARM64 (e.g., Raspberry Pi)
-- `freebsd-amd64`: FreeBSD on Intel/AMD 64-bit
-- `darwin-amd64`: macOS on Intel
-- `darwin-arm64`: macOS on Apple Silicon
+MIT License
