@@ -15,15 +15,19 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
             artifact_name: rustygate-linux-amd64
+            sha_cmd: sha256sum
           - os: ubuntu-latest
             target: aarch64-unknown-linux-musl
             artifact_name: rustygate-linux-arm64
+            sha_cmd: sha256sum
           - os: macos-latest
             target: x86_64-apple-darwin
             artifact_name: rustygate-darwin-amd64
+            sha_cmd: "shasum -a 256"
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact_name: rustygate-darwin-arm64
+            sha_cmd: "shasum -a 256"
 
     steps:
       - uses: actions/checkout@v4
@@ -59,7 +63,7 @@ jobs:
 
       - name: Generate SHA256
         run: |
-          sha256sum ${{ matrix.artifact_name }} > ${{ matrix.artifact_name }}.sha256
+          ${{ matrix.sha_cmd }} ${{ matrix.artifact_name }} > ${{ matrix.artifact_name }}.sha256
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
