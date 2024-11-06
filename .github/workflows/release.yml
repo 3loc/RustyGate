@@ -24,6 +24,13 @@ jobs:
             artifact_name: rustygate-linux-arm64
             cross_build: true
 
+          - os-name: FreeBSD-x86_64
+            runs-on: ubuntu-latest
+            target: x86_64-unknown-freebsd
+            artifact_name: rustygate-freebsd-amd64
+            cross_build: true
+            skip_tests: true  # FreeBSD tests might not work in Linux environment
+
           - os-name: macOS-x86_64
             runs-on: macos-latest
             target: x86_64-apple-darwin
@@ -40,12 +47,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Linux-specific steps
+      # Linux/FreeBSD cross-compilation steps
       - name: Install build dependencies
         if: matrix.platform.cross_build
         run: |
           sudo apt-get update
           sudo apt-get install -y musl-tools perl make
+          if [[ "${{ matrix.platform.target }}" == *"freebsd"* ]]; then
+            sudo apt-get install -y freebsd-buildutils
+          fi
 
       - name: Build with Cross
         if: matrix.platform.cross_build
@@ -57,6 +67,7 @@ jobs:
           env: |
             OPENSSL_STATIC=1
             RUSTFLAGS="-C target-feature=+crt-static"
+            CROSS_CONTAINER_OPTS="--platform linux/amd64"  # Ensure consistent platform for cross
 
       # macOS-specific steps
       - name: Install Rust
