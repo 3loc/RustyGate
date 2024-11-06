@@ -1,5 +1,7 @@
 # Rusty<img src="./gate.png" width="13%" alt="RustyGate Logo">Gate
 
+[![Docker Build](https://github.com/3loc/rustygate/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/3loc/rustygate/actions/workflows/docker-publish.yml) [![Docker Pulls](https://img.shields.io/docker/pulls/3loc/rustygate.svg)](https://hub.docker.com/r/3loc/rustygate) [![Docker Image Size](https://img.shields.io/docker/image-size/3loc/rustygate/latest)](https://hub.docker.com/r/3loc/rustygate) [![License](https://img.shields.io/github/license/3loc/rustygate.svg)](https://github.com/3loc/rustygate/blob/main/LICENSE)
+
 **RustyGate** is a lightweight, high performance, asynchronous OpenAI API proxy server with rate limiting, written in Rust.
 
 ## Features
