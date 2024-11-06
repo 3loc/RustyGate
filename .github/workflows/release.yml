@@ -47,7 +47,7 @@ jobs:
         uses: houseabsolute/actions-rust-cross@v0.0.15
         with:
           target: ${{ matrix.platform.target }}
-          args: "--release --features vendored-openssl"
+          args: "--release"
           strip: true
           env: |
             OPENSSL_STATIC=1
