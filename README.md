@@ -168,6 +168,11 @@ curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-li
 chmod +x rustygate-linux-arm64
 sudo mv rustygate-linux-arm64 /usr/local/bin/rustygate
 
+# FreeBSD AMD64
+curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-freebsd-amd64
+chmod +x rustygate-freebsd-amd64
+sudo mv rustygate-freebsd-amd64 /usr/local/bin/rustygate
+
 # macOS AMD64 (Intel)
 curl -LO https://github.com/3loc/rustygate/releases/latest/download/rustygate-darwin-amd64
 chmod +x rustygate-darwin-amd64
@@ -191,5 +196,6 @@ sha256sum -c rustygate-<platform>.sha256
 Available platforms:
 - `linux-amd64`: Linux on Intel/AMD 64-bit
 - `linux-arm64`: Linux on ARM64 (e.g., Raspberry Pi)
+- `freebsd-amd64`: FreeBSD on Intel/AMD 64-bit
 - `darwin-amd64`: macOS on Intel
 - `darwin-arm64`: macOS on Apple Silicon
