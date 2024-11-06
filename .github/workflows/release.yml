@@ -8,7 +8,7 @@ name: Release Binaries
 
 jobs:
   build-release:
-    name: Build Release
+    name: Build ${{ matrix.artifact_name }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -38,12 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Install dependencies (Alpine)
+      - name: Install basic dependencies (Alpine)
         if: matrix.container != ''
         run: |
           apk add --no-cache \
@@ -52,7 +47,14 @@ jobs:
             openssl-libs-static \
             pkgconfig \
             gcc \
-            musl-dev
+            musl-dev \
+            bash \
+            curl
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Build binary
         env:
